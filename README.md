@@ -1,6 +1,6 @@
 # Classdoor/Glassdoor Apify Actor
 
-This actor scrapes job listings and outputs records matching your XLSX schema.
+This actor scrapes job listings and outputs records.
 Default setup targets United States and your partnership-related job titles.
 
 ## Output columns
