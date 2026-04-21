@@ -36,6 +36,7 @@
       "title": "Country",
       "type": "string",
       "description": "Country keyword used for search URL generation",
+      "editor": "textfield",
       "default": "United States"
     },
     "keyword": {
