@@ -1,0 +1,16 @@
+{
+  "name": "classdoor-scraper",
+  "version": "0.0.1",
+  "type": "module",
+  "description": "Apify Actor for scraping Classdoor/Glassdoor listings to a fixed XLSX-compatible schema",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "apify": "^3.1.10",
+    "crawlee": "^3.10.5"
+  },
+  "scripts": {
+    "start": "node src/main.js"
+  }
+}

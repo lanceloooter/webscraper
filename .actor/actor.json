@@ -1,0 +1,12 @@
+{
+  "actorSpecification": 1,
+  "name": "classdoor-scraper",
+  "title": "Classdoor/Glassdoor Job Scraper",
+  "description": "Scrapes job listings and outputs fields matching your XLSX schema.",
+  "version": "0.0.1",
+  "buildTag": "latest",
+  "meta": {
+    "templateId": "project_empty"
+  },
+  "input": "./input_schema.json"
+}

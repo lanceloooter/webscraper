@@ -1,0 +1,61 @@
+{
+  "title": "Classdoor/Glassdoor Scraper Input",
+  "type": "object",
+  "schemaVersion": 1,
+  "properties": {
+    "startUrls": {
+      "title": "Start URLs",
+      "type": "array",
+      "description": "Optional. If empty, actor auto-builds search URLs from Job titles + Country.",
+      "editor": "requestListSources",
+      "prefill": []
+    },
+    "jobTitles": {
+      "title": "Job titles",
+      "type": "array",
+      "description": "Job titles to search for when Start URLs is empty",
+      "editor": "stringList",
+      "prefill": [
+        "Partner Manager",
+        "Partnerships Manager",
+        "Partner Sales Manager",
+        "Partner Success Manager",
+        "Strategic Partnerships Manager",
+        "Partner Marketing Manager",
+        "Director of Partnerships",
+        "Partner Enablement Manager",
+        "Head of Partnerships",
+        "Partner Operations Manager",
+        "VP of Partnerships",
+        "Alliances Manager",
+        "Channel Director",
+        "Chief Partner Officer"
+      ]
+    },
+    "country": {
+      "title": "Country",
+      "type": "string",
+      "description": "Country keyword used for search URL generation",
+      "default": "United States"
+    },
+    "keyword": {
+      "title": "Keyword",
+      "type": "string",
+      "description": "Fallback keyword value for output if not set per request",
+      "default": ""
+    },
+    "maxItems": {
+      "title": "Max items",
+      "type": "integer",
+      "description": "Maximum rows to output. Use 0 for unlimited.",
+      "default": 0,
+      "minimum": 0
+    },
+    "proxyConfiguration": {
+      "title": "Proxy configuration",
+      "type": "object",
+      "description": "Use Apify proxy for better reliability",
+      "editor": "proxy"
+    }
+  }
+}
