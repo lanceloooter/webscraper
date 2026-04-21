@@ -25,9 +25,9 @@ const {
   startUrls = [],
   jobTitles = DEFAULT_JOB_TITLES,
   country = 'United States',
-  salaryMin = 0,
-  salaryMax = 300000,
-  salaryStep = 10000,
+  salaryMin = 32000,
+  salaryMax = 200000,
+  salaryStep = 20000,
   postedWithinDays = 30,
   keyword = '',
   maxItems = 0,
@@ -55,10 +55,15 @@ const toAbsUrl = (url, base) => {
   }
 };
 
+const toSlug = (text) => normalize(text).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+
 const buildSearchUrl = (title, targetCountry, minSalary, maxSalary, daysAgo) => {
-  const kw = encodeURIComponent(title);
-  const loc = encodeURIComponent(targetCountry);
-  return `https://www.glassdoor.com/Job/jobs.htm?keyword=${kw}&locT=N&locKeyword=${loc}&fromAge=${daysAgo}&minSalary=${minSalary}&maxSalary=${maxSalary}`;
+  const countrySlug = toSlug(targetCountry);
+  const titleSlug = toSlug(title);
+  const searchSlug = `${countrySlug}-${titleSlug}-jobs`;
+  const koStart = countrySlug.length + 1;
+  const koEnd = koStart + titleSlug.length;
+  return `https://www.glassdoor.com/Job/${searchSlug}-SRCH_IL.0,${countrySlug.length}_IN1_KO${koStart},${koEnd}.htm?fromAge=${daysAgo}&minSalary=${minSalary}&maxSalary=${maxSalary}`;
 };
 
 const getSalaryBands = (minSalary, maxSalary, step) => {
