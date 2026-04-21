@@ -43,6 +43,7 @@
       "title": "Keyword",
       "type": "string",
       "description": "Fallback keyword value for output if not set per request",
+      "editor": "textfield",
       "default": ""
     },
     "maxItems": {
