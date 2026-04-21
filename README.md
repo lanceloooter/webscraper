@@ -3,6 +3,7 @@
 This actor scrapes job listings and outputs records.
 Default setup targets United States and your partnership-related job titles.
 It also sweeps salary ranges in increments, applies a 30-day posted filter, and deduplicates overlaps.
+Anti-block controls are included (session/cookie persistence, retries on blocked pages, throttling, and random delays).
 
 ## Output columns
 - Title
@@ -66,6 +67,10 @@ It also sweeps salary ranges in increments, applies a 30-day posted filter, and 
   "salaryStep": 10000,
   "postedWithinDays": 30,
   "maxItems": 0,
+  "maxConcurrency": 1,
+  "maxRequestsPerMinute": 6,
+  "minDelayMs": 2500,
+  "maxDelayMs": 7000,
   "proxyConfiguration": { "useApifyProxy": true }
 }
 ```

@@ -31,11 +31,19 @@ const {
   postedWithinDays = 30,
   keyword = '',
   maxItems = 0,
+  maxConcurrency = 1,
+  maxRequestsPerMinute = 6,
+  minDelayMs = 2500,
+  maxDelayMs = 7000,
   proxyConfiguration = undefined,
 } = input;
 
 const proxy = await Actor.createProxyConfiguration(proxyConfiguration);
 const itemLimit = Number.isFinite(maxItems) && maxItems > 0 ? maxItems : Number.POSITIVE_INFINITY;
+const safeMaxConcurrency = Math.max(1, Number(maxConcurrency) || 1);
+const safeRpm = Math.max(1, Number(maxRequestsPerMinute) || 6);
+const safeMinDelay = Math.max(0, Number(minDelayMs) || 2500);
+const safeMaxDelay = Math.max(safeMinDelay, Number(maxDelayMs) || 7000);
 
 let pushed = 0;
 const seen = new Set();
@@ -114,6 +122,8 @@ const csvEscape = (value) => {
   return s;
 };
 
+const randomDelay = () => Math.floor(Math.random() * (safeMaxDelay - safeMinDelay + 1)) + safeMinDelay;
+
 const seedRequests = (Array.isArray(startUrls) && startUrls.length > 0)
   ? startUrls.map((req) => ({
       ...req,
@@ -132,14 +142,26 @@ const seedRequests = (Array.isArray(startUrls) && startUrls.length > 0)
 
 const crawler = new PlaywrightCrawler({
   proxyConfiguration: proxy,
-  maxRequestRetries: 3,
+  maxRequestRetries: 8,
+  retryOnBlocked: true,
   navigationTimeoutSecs: 90,
   requestHandlerTimeoutSecs: 120,
-  maxConcurrency: 10,
+  maxConcurrency: safeMaxConcurrency,
+  maxRequestsPerMinute: safeRpm,
+  useSessionPool: true,
+  persistCookiesPerSession: true,
+  sessionPoolOptions: {
+    maxPoolSize: Math.max(20, safeMaxConcurrency * 10),
+    sessionOptions: {
+      maxUsageCount: 50,
+      maxErrorScore: 2,
+    },
+  },
 
   async requestHandler({ page, request, enqueueLinks }) {
     if (pushed >= itemLimit) return;
 
+    await page.waitForTimeout(randomDelay());
     await page.waitForLoadState('domcontentloaded');
 
     const isDetailPage = /\/jobListing\?|\/partner\/jobListing\.htm/i.test(request.loadedUrl ?? request.url);

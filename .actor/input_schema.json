@@ -85,6 +85,38 @@
       "default": 0,
       "minimum": 0
     },
+    "maxConcurrency": {
+      "title": "Max concurrency",
+      "type": "integer",
+      "description": "Lower values reduce blocking risk (recommended: 1)",
+      "editor": "number",
+      "default": 1,
+      "minimum": 1
+    },
+    "maxRequestsPerMinute": {
+      "title": "Max requests per minute",
+      "type": "integer",
+      "description": "Throttle request rate to reduce 403 blocks",
+      "editor": "number",
+      "default": 6,
+      "minimum": 1
+    },
+    "minDelayMs": {
+      "title": "Min delay (ms)",
+      "type": "integer",
+      "description": "Minimum random wait before each page handling",
+      "editor": "number",
+      "default": 2500,
+      "minimum": 0
+    },
+    "maxDelayMs": {
+      "title": "Max delay (ms)",
+      "type": "integer",
+      "description": "Maximum random wait before each page handling",
+      "editor": "number",
+      "default": 7000,
+      "minimum": 0
+    },
     "proxyConfiguration": {
       "title": "Proxy configuration",
       "type": "object",
