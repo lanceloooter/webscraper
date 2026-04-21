@@ -8,7 +8,8 @@
   },
   "dependencies": {
     "apify": "^3.1.10",
-    "crawlee": "^3.10.5"
+    "crawlee": "^3.10.5",
+    "playwright": "^1.52.0"
   },
   "scripts": {
     "start": "node src/main.js"
