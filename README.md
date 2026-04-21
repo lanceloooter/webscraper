@@ -2,6 +2,7 @@
 
 This actor scrapes job listings and outputs records.
 Default setup targets United States and your partnership-related job titles.
+It also sweeps salary ranges in increments, applies a 30-day posted filter, and deduplicates overlaps.
 
 ## Output columns
 - Title
@@ -18,6 +19,10 @@ Default setup targets United States and your partnership-related job titles.
 ## Local run
 1. `npm install`
 2. `npm start`
+
+## Output files
+- Dataset items (standard Apify output)
+- `OUTPUT.csv` in Key-Value Store (same columns as dataset)
 
 ## Default job titles
 - Partner Manager
@@ -56,6 +61,10 @@ Default setup targets United States and your partnership-related job titles.
     "Chief Partner Officer"
   ],
   "country": "United States",
+  "salaryMin": 0,
+  "salaryMax": 300000,
+  "salaryStep": 10000,
+  "postedWithinDays": 30,
   "maxItems": 0,
   "proxyConfiguration": { "useApifyProxy": true }
 }

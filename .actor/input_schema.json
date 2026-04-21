@@ -39,6 +39,38 @@
       "editor": "textfield",
       "default": "United States"
     },
+    "salaryMin": {
+      "title": "Salary minimum",
+      "type": "integer",
+      "description": "Minimum salary filter for generated search URLs",
+      "editor": "number",
+      "default": 0,
+      "minimum": 0
+    },
+    "salaryMax": {
+      "title": "Salary maximum",
+      "type": "integer",
+      "description": "Maximum salary filter for generated search URLs",
+      "editor": "number",
+      "default": 300000,
+      "minimum": 0
+    },
+    "salaryStep": {
+      "title": "Salary increment step",
+      "type": "integer",
+      "description": "Size of each salary band for exhaustive pagination",
+      "editor": "number",
+      "default": 10000,
+      "minimum": 1000
+    },
+    "postedWithinDays": {
+      "title": "Posted within days",
+      "type": "integer",
+      "description": "Date posted filter in days (default 30)",
+      "editor": "number",
+      "default": 30,
+      "minimum": 1
+    },
     "keyword": {
       "title": "Keyword",
       "type": "string",

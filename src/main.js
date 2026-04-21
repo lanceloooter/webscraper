@@ -25,6 +25,10 @@ const {
   startUrls = [],
   jobTitles = DEFAULT_JOB_TITLES,
   country = 'United States',
+  salaryMin = 0,
+  salaryMax = 300000,
+  salaryStep = 10000,
+  postedWithinDays = 30,
   keyword = '',
   maxItems = 0,
   proxyConfiguration = undefined,
@@ -35,6 +39,7 @@ const itemLimit = Number.isFinite(maxItems) && maxItems > 0 ? maxItems : Number.
 
 let pushed = 0;
 const seen = new Set();
+const emitted = new Set();
 
 const normalize = (value) => {
   if (!value) return '';
@@ -50,15 +55,59 @@ const toAbsUrl = (url, base) => {
   }
 };
 
-const buildSearchUrl = (title, targetCountry) => {
+const buildSearchUrl = (title, targetCountry, minSalary, maxSalary, daysAgo) => {
   const kw = encodeURIComponent(title);
   const loc = encodeURIComponent(targetCountry);
-  return `https://www.glassdoor.com/Job/jobs.htm?keyword=${kw}&locT=N&locKeyword=${loc}`;
+  return `https://www.glassdoor.com/Job/jobs.htm?keyword=${kw}&locT=N&locKeyword=${loc}&fromAge=${daysAgo}&minSalary=${minSalary}&maxSalary=${maxSalary}`;
+};
+
+const getSalaryBands = (minSalary, maxSalary, step) => {
+  const min = Math.max(0, Number(minSalary) || 0);
+  const max = Math.max(min, Number(maxSalary) || min);
+  const safeStep = Math.max(1000, Number(step) || 10000);
+  const bands = [];
+  for (let start = min; start <= max; start += safeStep) {
+    const end = Math.min(start + safeStep - 1, max);
+    bands.push([start, end]);
+  }
+  return bands;
+};
+
+const canonicalJobKey = (rawUrl) => {
+  try {
+    const u = new URL(rawUrl);
+    const jl = u.searchParams.get('jl');
+    if (jl) return `jl:${jl}`;
+    return `${u.origin}${u.pathname}`;
+  } catch {
+    return rawUrl;
+  }
 };
 
 const trimmedJobTitles = (Array.isArray(jobTitles) ? jobTitles : DEFAULT_JOB_TITLES)
   .map((t) => normalize(t))
   .filter(Boolean);
+
+const OUTPUT_COLUMNS = [
+  'Title',
+  'Title_URL',
+  'Name',
+  'ratingsinglestar_ratingtext_5fdjn',
+  'Location',
+  'Salary',
+  'Description',
+  'Description2',
+  'Keyword',
+  'date_extracted',
+];
+
+const csvEscape = (value) => {
+  const s = String(value ?? '');
+  if (s.includes('"') || s.includes(',') || s.includes('\n') || s.includes('\r')) {
+    return `"${s.replaceAll('"', '""')}"`;
+  }
+  return s;
+};
 
 const seedRequests = (Array.isArray(startUrls) && startUrls.length > 0)
   ? startUrls.map((req) => ({
@@ -68,10 +117,13 @@ const seedRequests = (Array.isArray(startUrls) && startUrls.length > 0)
         keyword: normalize(req.userData?.keyword ?? keyword),
       },
     }))
-  : trimmedJobTitles.map((title) => ({
-      url: buildSearchUrl(title, country),
-      userData: { keyword: title },
-    }));
+  : trimmedJobTitles.flatMap((title) => getSalaryBands(salaryMin, salaryMax, salaryStep).map(([bandMin, bandMax]) => ({
+      url: buildSearchUrl(title, country, bandMin, bandMax, postedWithinDays),
+      userData: {
+        keyword: title,
+        salaryBand: `${bandMin}-${bandMax}`,
+      },
+    })));
 
 const crawler = new PlaywrightCrawler({
   proxyConfiguration: proxy,
@@ -111,8 +163,9 @@ const crawler = new PlaywrightCrawler({
       for (const card of cards) {
         if (pushed >= itemLimit) break;
         const fullUrl = toAbsUrl(card.href, request.loadedUrl ?? request.url);
-        if (!fullUrl || seen.has(fullUrl)) continue;
-        seen.add(fullUrl);
+        const key = canonicalJobKey(fullUrl);
+        if (!fullUrl || seen.has(key)) continue;
+        seen.add(key);
 
         await crawler.addRequests([
           {
@@ -121,6 +174,7 @@ const crawler = new PlaywrightCrawler({
             userData: {
               fallbackTitle: normalize(card.title),
               keyword: normalize(request.userData?.keyword ?? keyword),
+              salaryBand: request.userData?.salaryBand ?? '',
             },
           },
         ]);
@@ -215,6 +269,10 @@ const crawler = new PlaywrightCrawler({
       date_extracted: new Date().toISOString(),
     };
 
+    const dedupKey = `${canonicalJobKey(out.Title_URL)}|${out.Title}|${out.Name}`;
+    if (emitted.has(dedupKey)) return;
+    emitted.add(dedupKey);
+
     await Actor.pushData(out);
     pushed += 1;
 
@@ -226,6 +284,13 @@ const crawler = new PlaywrightCrawler({
 });
 
 await crawler.run(seedRequests);
+
+const { items } = await Actor.apifyClient.dataset(Actor.config.defaultDatasetId).listItems({ clean: true });
+const csvLines = [
+  OUTPUT_COLUMNS.join(','),
+  ...items.map((item) => OUTPUT_COLUMNS.map((col) => csvEscape(item[col])).join(',')),
+];
+await Actor.setValue('OUTPUT.csv', csvLines.join('\n'), { contentType: 'text/csv; charset=utf-8' });
 
 log.info(`Finished. Pushed ${pushed} items.`);
 await Actor.exit();
